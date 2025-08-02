@@ -1,0 +1,111 @@
+package dev.jakub.discord.translation.service.deepl;
+
+import com.deepl.api.LanguageCode;
+import com.deepl.api.TextResult;
+import com.deepl.api.Translator;
+import com.deepl.api.TranslatorOptions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import dev.jakub.discord.bot.TranslatorBot;
+import dev.jakub.discord.translation.service.TranslationService;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.emoji.UnicodeEmoji;
+import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class DeepLTranslationService implements TranslationService {
+
+    private final Translator translator;
+    private final HashMap<String, String> languageCodes = Maps.newHashMap();
+
+    public DeepLTranslationService(String authKey) {
+        this.translator = new Translator(authKey, getTranslatorOptions());
+
+        loadLanguageOptions();
+    }
+
+
+    public String translate(@NotNull String text, @Nullable String sourceLanguage, @NotNull String targetLanguage) {
+        try {
+            TextResult result = translator.translateText(text, sourceLanguage, targetLanguage);
+            return targetLanguage + ": " + result.getText();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public String translate(@NotNull String text, @Nullable String sourceLanguage, @NotNull List<String> targetLanguages) {
+        List<String> translatedTexts = Lists.newArrayList();
+        for (String targetLanguage : targetLanguages) {
+            translatedTexts.add(translate(text, sourceLanguage, targetLanguage));
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String translatedText : translatedTexts) {
+            stringBuilder.append(translatedText).append("\n");
+        }
+        return stringBuilder.toString();
+    }
+
+
+    @Override
+    public String getSourceLanguage(@NotNull String text) {
+        for (var languageCode : languageCodes.entrySet()) {
+            if (languageCode.getValue().equals(text)) {
+                return languageCode.getKey();
+            }
+        }
+        return null;
+    }
+
+    private TranslatorOptions getTranslatorOptions() {
+        Map<String, String> headers = Maps.newHashMap();
+        headers.put("User-Agent", "TranslatorBot/1.0.0");
+        return new TranslatorOptions()
+                .setAppInfo("Dsicord-TranslatorBot", "1.0.0")
+                .setSendPlatformInfo(false).setHeaders(headers);
+    }
+
+    private void loadLanguageOptions() {
+        // Need to add all languages manually because the API doesn't provide a way to get all languages by name with their language code
+        languageCodes.put("German", LanguageCode.German);
+        languageCodes.put("French", LanguageCode.French);
+        languageCodes.put("Spanish",LanguageCode.Spanish);
+        languageCodes.put("Italian", LanguageCode.Italian);
+        languageCodes.put("Dutch", LanguageCode.Dutch);
+        languageCodes.put("Polish", LanguageCode.Polish);
+        languageCodes.put("Russian", LanguageCode.Russian);
+        languageCodes.put("Japanese", LanguageCode.Japanese);
+        languageCodes.put("Chinese", LanguageCode.Chinese);
+        languageCodes.put("Bulgarian", LanguageCode.Bulgarian);
+        languageCodes.put("Czech", LanguageCode.Czech);
+        languageCodes.put("Danish",LanguageCode.Danish);
+        languageCodes.put("Estonian", LanguageCode.Estonian);
+        languageCodes.put("Finnish", LanguageCode.Finnish);
+        languageCodes.put("Greek", LanguageCode.Greek);
+        languageCodes.put("Hungarian", LanguageCode.Hungarian);
+        languageCodes.put("Latvian", LanguageCode.Latvian);
+        languageCodes.put("Lithuanian", LanguageCode.Lithuanian);
+        languageCodes.put("Romanian", LanguageCode.Romanian);
+        languageCodes.put("Slovak", LanguageCode.Slovak);
+        languageCodes.put("Slovenian", LanguageCode.Slovenian);
+        languageCodes.put("Swedish", LanguageCode.Swedish);
+        languageCodes.put("Turkish", LanguageCode.Turkish);
+        languageCodes.put("English-American", LanguageCode.EnglishAmerican);
+        languageCodes.put("English-British", LanguageCode.EnglishBritish);
+        languageCodes.put("Portuguese-Brazilian", LanguageCode.PortugueseBrazilian);
+        languageCodes.put("Portuguese-European", LanguageCode.PortugueseEuropean);
+
+        for (var languageCode : languageCodes.entrySet()) {
+            String value = languageCode.getValue();
+            if (value.startsWith("en-") || value.startsWith("pt-")) value = value.split("-")[1];
+
+        }
+    }
+}
