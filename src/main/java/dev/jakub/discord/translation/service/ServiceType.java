@@ -8,7 +8,8 @@ import java.util.List;
 @Getter
 public enum ServiceType {
 
-    GOOGLE(0, "", ""),
+    GOOGLE(TranslatorBot.getInstance().getTranslationService().getGoogleTranslationService() != null ?
+            TranslatorBot.getInstance().getTranslationService().getGoogleTranslationService().getLanguageOptions().size() : 0, "Google Translator (https://translate.google.com/)", "\uD83C\uDF10"),
     MICROSOFT(0, "", ""),
     OPENAI(0, "", ""),
     DEEPL(0, "", "");
