@@ -6,7 +6,11 @@ import com.deepl.api.Translator;
 import com.deepl.api.TranslatorOptions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import dev.jakub.discord.bot.TranslatorBot;
 import dev.jakub.discord.translation.service.TranslationService;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.emoji.UnicodeEmoji;
+import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,6 +22,7 @@ public class DeepLTranslationService implements TranslationService {
 
     private final Translator translator;
     private final HashMap<String, String> languageCodes = Maps.newHashMap();
+    private final List<SelectOption> languageOptions = Lists.newArrayList();
 
     public DeepLTranslationService(String authKey) {
         this.translator = new Translator(authKey, getTranslatorOptions());
@@ -64,7 +69,7 @@ public class DeepLTranslationService implements TranslationService {
         Map<String, String> headers = Maps.newHashMap();
         headers.put("User-Agent", "TranslatorBot/1.0.0");
         return new TranslatorOptions()
-                .setAppInfo("Dsicord-TranslatorBot", "1.0.0")
+                .setAppInfo("Discord-TranslatorBot", "1.0.0")
                 .setSendPlatformInfo(false).setHeaders(headers);
     }
 
@@ -102,6 +107,17 @@ public class DeepLTranslationService implements TranslationService {
             String value = languageCode.getValue();
             if (value.startsWith("en-") || value.startsWith("pt-")) value = value.split("-")[1];
 
+            String formattedLanguageCode = TranslatorBot.getInstance().getEmoji(value.toUpperCase());
+            if (formattedLanguageCode != null) {
+                TranslatorBot.LOGGER.severe("Emoji not found for language: " + value);
+                continue;
+            }
+
+            UnicodeEmoji emoji = Emoji.fromUnicode(formattedLanguageCode);
+            languageOptions.add(SelectOption.of(languageCode.getKey(),
+                            languageCode.getValue())
+                    .withDescription("Language code: " + languageCode.getValue())
+                    .withEmoji(emoji));
         }
     }
 }
