@@ -6,6 +6,8 @@ import com.sun.jdi.request.StepRequest;
 import dev.jakub.discord.configurations.BotConfiguration;
 import dev.jakub.discord.language.UnicodeLoader;
 import dev.jakub.discord.language.unicode.UnicodeProvider;
+import dev.jakub.discord.translation.TranslationServiceProvider;
+import dev.jakub.discord.translation.service.TranslationService;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.entities.Activity;
@@ -37,6 +39,7 @@ public class TranslatorBot {
     private ShardManager shardManager;
 
     private UnicodeLoader unicodeLoader;
+    private TranslationServiceProvider translationService;
 
 
     public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(10);
