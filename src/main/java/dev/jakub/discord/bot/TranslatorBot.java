@@ -2,12 +2,17 @@ package dev.jakub.discord.bot;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.jdi.request.StepRequest;
 import dev.jakub.discord.configurations.BotConfiguration;
+import dev.jakub.discord.language.UnicodeLoader;
+import dev.jakub.discord.language.unicode.UnicodeProvider;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.apache.commons.collections4.iterators.EnumerationIterator;
 
 import java.io.File;
@@ -15,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 
 @Getter
@@ -29,6 +36,10 @@ public class TranslatorBot {
 
     private ShardManager shardManager;
 
+    private UnicodeLoader unicodeLoader;
+
+
+    public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(10);
 
     public TranslatorBot() {
         instance = this;
@@ -40,12 +51,18 @@ public class TranslatorBot {
 
         DefaultShardManagerBuilder shardManagerBuilder = DefaultShardManagerBuilder.createDefault(botConfiguration.getToken());
 
+        configureMemoryUsage(shardManagerBuilder);
         this.shardManager = shardManagerBuilder.build();
         this.shardManager.setActivity(Activity.customStatus("Use /translate"));
+
+        Runtime.getRuntime().addShutdownHook(new Thread(this::onDisable));
     }
 
     public void onDisable() {
-
+        LOGGER.info("Shutting down...");
+        shardManager.shutdown();
+        EXECUTOR_SERVICE.shutdown();
+        LOGGER.info("Shut down!");
     }
 
     @SneakyThrows
@@ -66,5 +83,28 @@ public class TranslatorBot {
             System.exit(0);
         }
         return botConfiguration;
+    }
+
+    public String getEmoji(String countryCode) {
+        if (unicodeLoader.getUnicodeProvider().getUnicode().isEmpty()) {
+            System.out.println("UnicodeProvider is empty!");
+        }
+        if (unicodeLoader.getUnicodeProvider().getUnicode().containsKey(countryCode.toUpperCase())) {
+            return unicodeLoader.getUnicodeProvider().getUnicode().get(countryCode.toUpperCase());
+        }
+        return null;
+    }
+
+    private void configureMemoryUsage(DefaultShardManagerBuilder shardManagerBuilder) {
+        shardManagerBuilder.disableCache(
+                CacheFlag.ACTIVITY,
+                CacheFlag.VOICE_STATE,
+                CacheFlag.CLIENT_STATUS,
+                CacheFlag.SCHEDULED_EVENTS,
+                CacheFlag.STICKER);
+        shardManagerBuilder.enableIntents(
+                GatewayIntent.GUILD_MESSAGES,
+                GatewayIntent.MESSAGE_CONTENT,
+                GatewayIntent.GUILD_MESSAGE_TYPING);
     }
 }
