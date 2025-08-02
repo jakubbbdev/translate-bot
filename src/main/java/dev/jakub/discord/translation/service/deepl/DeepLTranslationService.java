@@ -6,11 +6,7 @@ import com.deepl.api.Translator;
 import com.deepl.api.TranslatorOptions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import dev.jakub.discord.bot.TranslatorBot;
 import dev.jakub.discord.translation.service.TranslationService;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.entities.emoji.UnicodeEmoji;
-import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
