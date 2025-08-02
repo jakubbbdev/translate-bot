@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import dev.jakub.discord.configurations.BotConfiguration;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.apache.commons.collections4.iterators.EnumerationIterator;
 
@@ -35,6 +37,11 @@ public class TranslatorBot {
 
     public void onEnable() {
         BotConfiguration botConfiguration = loadConfiguration();
+
+        DefaultShardManagerBuilder shardManagerBuilder = DefaultShardManagerBuilder.createDefault(botConfiguration.getToken());
+
+        this.shardManager = shardManagerBuilder.build();
+        this.shardManager.setActivity(Activity.customStatus("Use /translate"));
     }
 
     public void onDisable() {
@@ -52,6 +59,12 @@ public class TranslatorBot {
             Files.copy(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("config.json")), path);
             LOGGER.info("Created config.json");
         }
-        return null;
+
+        final BotConfiguration botConfiguration = gson.fromJson(Files.newBufferedReader(path), BotConfiguration.class);
+        if (botConfiguration == null) {
+            LOGGER.severe("Failed to load config.json");
+            System.exit(0);
+        }
+        return botConfiguration;
     }
 }
